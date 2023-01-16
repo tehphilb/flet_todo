@@ -17,11 +17,11 @@ class FormContainer(UserControl):
             width=280,
             height=80,
             bgcolor="#f0f0f0",
-            opacity=0.8,
+            opacity=1,
             border_radius=40,
             padding=padding.only(top=45, bottom=45),
             animate=animation.Animation(400, "decelerate"),
-            animate_opacity=200,
+            animate_opacity=220,
         )
 
 
@@ -98,7 +98,7 @@ def main(page: Page):
 
     # sets the long element index as a variable so it can be called faster
     # now it can be called from wherever in the code faster and easier
-    form = page.controls[0].content.controls[0].controls[1]
+    form = page.controls[0].content.controls[1].controls[0]
 
 if __name__ == "__main__":
     app(target=main)
