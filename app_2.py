@@ -1,5 +1,4 @@
 
-
 from flet import *
 from datetime import datetime
 import sqlite3
@@ -15,13 +14,40 @@ class FormContainer(UserControl):
     def build(self):
         return Container(
             width=280,
-            height=80,
+            height=0,
             bgcolor="#f0f0f0",
-            opacity=1,
-            border_radius=40,
+            opacity=0,
+            border_radius=0,
             padding=padding.only(top=45, bottom=45),
-            animate=animation.Animation(400, "decelerate"),
-            animate_opacity=220,
+            animate=animation.Animation(500, "decelerate"),
+            animate_opacity=280,
+            content=Column(
+                horizontal_alignment=CrossAxisAlignment.CENTER,
+                controls=[TextField(
+                    width=255,
+                    filled=True,
+                    color="black87",
+                    cursor_color="black87",
+                    border_color="black87",
+                    border_width=0.3,
+                    hint_text="Write something...",
+                    hint_style=TextStyle(color="black87", weight=FontWeight.W_200),
+                    text_style=TextStyle(color="black87", weight=FontWeight.W_300),
+                    cursor_width=0.4,
+                    multiline=True,
+                    min_lines=1,
+                    max_lines=2,
+                ),
+                IconButton(
+                    content=Text("Add TODO"),
+                    width=110,
+                    style=ButtonStyle(
+                        bgcolor="black87",
+                        shape=StadiumBorder(),
+                    ),
+                )
+                ]
+            )
         )
 
 
@@ -32,10 +58,11 @@ def main(page: Page):
     # funtion to show/hide form container
     def createTodo(e):
         if form.height != 200:
-            form.height = 200
+            
+            form.height, form.opacity, form.border_radius = 200, 1, 20
             form.update()
-        else: 
-            form.height = 80
+        else:
+            form.height, form.opacity, form.border_radius = 0, 0, 0
             form.update()
 
     # here Appbar (the white one of top of the page)
@@ -98,6 +125,7 @@ def main(page: Page):
 
     # sets the long element index as a variable so it can be called faster
     # now it can be called from wherever in the code faster and easier
+    # route is page.add.Container => Column.FormContainer => Container
     form = page.controls[0].content.controls[1].controls[0]
 
 if __name__ == "__main__":
