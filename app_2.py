@@ -60,19 +60,41 @@ class FormContainer(UserControl):
 
 
 class CreateTodo(UserControl):
-    def __init__(self, todo: str, date: str):
+    def __init__(self, todo: str, date: str, func1, func2):
+        # create two arguments to pass in the delete function and edit function when creating an instance of it
         self.todo = todo
         self.date = date
+        self.func1 = func1
+        self.func2 = func2
         super().__init__()
 
-    def deleteEditTodo(self, name, color):
+    def deleteEditTodo(self, name, color, func):
         return IconButton(
             icon=name,
             icon_size=18,
             icon_color=color,
             animate_opacity=280,
-            on_click=None,
+            opacity=0,
+            on_click=lambda e: func(self.getContainerInstanace()),
         )
+
+    def getContainerInstanace(self):
+        return self
+
+    def showIcons(self, e):
+        if e.data == 'true':
+            # index of each icon
+            (e.control.content.controls[1].controls[0].opacity,
+            e.control.content.controls[1].controls[1].opacity) = (
+                1, 1
+            )
+            e.control.content.update()
+        else:
+            (e.control.content.controls[1].controls[0].opacity,
+             e.control.content.controls[1].controls[1].opacity) = (
+                0, 0
+            )
+            e.control.content.update()
 
     def build(self):
         return Row(
@@ -83,7 +105,7 @@ class CreateTodo(UserControl):
                     height=60,
                     border=border.all(0.3, "white"),
                     border_radius=5,
-                    # on_hover=None,
+                    on_hover=lambda e: self.showIcons(e),
                     clip_behavior=ClipBehavior.ANTI_ALIAS,
                     padding=10.0,
                     content=Row(
@@ -96,17 +118,18 @@ class CreateTodo(UserControl):
                                     Text(value=self.todo, size=12),
                                     Text(value=self.date, size=8,
                                          color="white54"),
-                                ]
+                                ],
                             ),
                             ##TODO: replace below with dropdown and 3 dot menu
                             # Icons delete and Exit
                             Row(
-                                spacing=1,
+                                spacing=0,
                                 alignment=MainAxisAlignment.SPACE_EVENLY,
                                 controls=[
                                     # Calls deleteTodo function
-                                    self.deleteEditTodo(icons.DELETE, "red"),
-                                    self.deleteEditTodo(icons.EDIT, "green"),
+                                    self.deleteEditTodo(icons.CLOSE_SHARP, "white", self.func1),
+                                    self.deleteEditTodo(
+                                        icons.MODE_EDIT_OUTLINED, "white", self.func2),
                                 ],
                             )
                         ]
@@ -136,11 +159,30 @@ def main(page: Page):
                     # todo takes two arguments
                     form.content.controls[0].value,
                     dateTime,
+                    # now the intance take two arguments when called...
+                    deleteTodoFuction,
+                    updateTodoFunction,
                 )
             )
             _main_column_.update()
 
+            # call show hide function   
             createTodo(e)
+
+    def deleteTodoFuction(e):
+        # when want to delete a todo, recall that these instances are in a list => so that means it can simply remove it from the list
+        _main_column_.controls.remove(e) # e is the instance itself
+        _main_column_.update()
+
+        
+
+    def updateTodoFunction(e):
+        form.height, form.opacity = 200, 1, # show form
+        (
+            form.content.controls[0].value,
+            form.content.controls[1].content.value,
+        )
+        print(e.todo)
 
     # funtion to show/hide form container
     def createTodo(e):
@@ -213,7 +255,6 @@ def main(page: Page):
     # now it can be called from wherever in the code faster and easier
     # route is page.add.Container => Column.FormContainer => Container
     form = page.controls[0].content.controls[1].controls[0]
-    print(form.content.controls[0].value)
 
 
 if __name__ == "__main__":
