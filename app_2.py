@@ -3,6 +3,12 @@ from flet import *
 from datetime import datetime
 import sqlite3
 
+# Database class
+
+
+class DataBase:
+    pass
+
 # Form class
 
 
@@ -46,12 +52,6 @@ class FormContainer(UserControl):
                         icon_size=32,
                         icon_color="black87",
                         on_click=self.func,
-                    # content=Text("Add TODO"),
-                    # width=110,
-                    # style=ButtonStyle(
-                    #     bgcolor="black87",
-                    #     shape=StadiumBorder(),
-                    # ),
 
                 )]
             )
@@ -172,7 +172,7 @@ def main(page: Page):
             createTodo(e)
 
     def deleteTodoFuction(e):
-        # when want to delete a todo, recall that these instances are in a list => so that means it can simply remove it from the list
+        # when want to delete a todo, recall that these instances are in a list => so that means it can simply be removed from the list
         _main_column_.controls.remove(e)  # e is the instance itself
         _main_column_.update()
 
@@ -210,7 +210,8 @@ def main(page: Page):
 
             form.content.controls[0].value = ""  # clear textfield,
             form.content.controls[2].icon = icons.ADD  # change icon to add,
-            form.content.controls[2].on_click = lambda e: createTodoScreen(e)  # change button function to createTodoScreen
+            form.content.controls[2].on_click = lambda e: createTodoScreen(
+                e)  # change button function to createTodoScreen
 
             form.update()
 
@@ -239,11 +240,6 @@ def main(page: Page):
                                on_click=createTodo,)
                 ],
             ),),
-            # Container(
-            #     alignment=alignment.center,
-            #     padding=padding.only(top=35, left=10, right=10),
-            #     content=Divider(height=1, color="#f0f0f0"),
-            # ),
         ],
     )
 
