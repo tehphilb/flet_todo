@@ -40,18 +40,19 @@ class FormContainer(UserControl):
                     min_lines=1,
                     max_lines=2,
                 ),
-                    Container(height=5),                   
+                    Container(height=5),
                     IconButton(
                         icon=icons.ADD,
                         icon_size=32,
                         icon_color="black87",
+                        on_click=self.func,
                     # content=Text("Add TODO"),
                     # width=110,
                     # style=ButtonStyle(
                     #     bgcolor="black87",
                     #     shape=StadiumBorder(),
                     # ),
-                    on_click=self.func,
+
                 )]
             )
         )
@@ -85,7 +86,7 @@ class CreateTodo(UserControl):
         if e.data == 'true':
             # index of each icon
             (e.control.content.controls[1].controls[0].opacity,
-            e.control.content.controls[1].controls[1].opacity) = (
+             e.control.content.controls[1].controls[1].opacity) = (
                 1, 1
             )
             e.control.content.update()
@@ -120,14 +121,15 @@ class CreateTodo(UserControl):
                                          color="white54"),
                                 ],
                             ),
-                            ##TODO: replace below with dropdown and 3 dot menu
+                            # TODO: replace below with dropdown and 3 dot menu
                             # Icons delete and Exit
                             Row(
                                 spacing=0,
                                 alignment=MainAxisAlignment.SPACE_EVENLY,
                                 controls=[
                                     # Calls deleteTodo function
-                                    self.deleteEditTodo(icons.CLOSE_SHARP, "white", self.func1),
+                                    self.deleteEditTodo(
+                                        icons.CLOSE_SHARP, "white", self.func1),
                                     self.deleteEditTodo(
                                         icons.MODE_EDIT_OUTLINED, "white", self.func2),
                                 ],
@@ -166,31 +168,50 @@ def main(page: Page):
             )
             _main_column_.update()
 
-            # call show hide function   
+            # call show hide function
             createTodo(e)
 
     def deleteTodoFuction(e):
         # when want to delete a todo, recall that these instances are in a list => so that means it can simply remove it from the list
-        _main_column_.controls.remove(e) # e is the instance itself
+        _main_column_.controls.remove(e)  # e is the instance itself
         _main_column_.update()
 
-        
-
     def updateTodoFunction(e):
-        form.height, form.opacity = 200, 1, # show form
+        form.height, form.opacity, form.border_radius = 200, 1, 20  # show form
         (
             form.content.controls[0].value,
-            form.content.controls[1].content.value,
+            # changing the button function and icon from add to update
+            form.content.controls[2].icon,
+            form.content.controls[2].on_click,
+        ) = (
+            # this is the instant value of the todo
+            e.controls[0].controls[0].content.controls[0].controls[0].value,
+            # new icon for update
+            icons.AUTORENEW_OUTLINED,
+            lambda _: finalizeUpdate(e)
         )
-        print(e.todo)
+        form.update()
+
+    def finalizeUpdate(e):
+        # update the todo
+        e.controls[0].controls[0].content.controls[0].controls[0].value = form.content.controls[0].value
+        e.controls[0].controls[0].content.update()
+        # show hide form
+        createTodo(e)
 
     # funtion to show/hide form container
+
     def createTodo(e):
         if form.height != 200:
             form.height, form.opacity, form.border_radius = 200, 1, 20
             form.update()
         else:
             form.height, form.opacity, form.border_radius = 0, 0, 0
+
+            form.content.controls[0].value = ""  # clear textfield,
+            form.content.controls[2].icon = icons.ADD  # change icon to add,
+            form.content.controls[2].on_click = lambda e: createTodoScreen(e)  # change button function to createTodoScreen
+
             form.update()
 
     # here Appbar (the white one of top of the page)
