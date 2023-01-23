@@ -11,7 +11,8 @@ class DataBase:
         try:
             db = sqlite3.connect("data.db")
             cur = db.cursor()
-            cur.execute("CREATE TABLE if not exists todos (id INTERGER PRIMARY KEY AUTOINCREMENT, Todo TEXT NOT NULL, Date TEXT NOT NULL, )")
+            cur.execute(
+                "CREATE TABLE if not exists todos (id INTEGER PRIMARY KEY AUTOINCREMENT, Todo TEXT NOT NULL, Date TEXT NOT NULL)")
             return db
         except Exception as e:
             print(e)
@@ -27,9 +28,10 @@ class DataBase:
         cur.execute("INSERT INTO todos (Todo, Date) VALUES (?,?)", values)
         db.commit()
 
-    def deletDataBase(db, value):
+    def deleteDatabase(db, value):
         cur = db.cursor()
-        cur.delete("DELETE FROM todos WHERE Todo=?)", value) #TODO: id would be better as the todo text
+        # TODO: id would be better as the todo text
+        cur.execute("DELETE FROM todos WHERE Todo=?", value)
         db.commit()
 
     def updateDatabase(db, value):
@@ -176,12 +178,18 @@ def main(page: Page):
 
     # datetime function
     def dateTimeFunc():
-        return datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+        return datetime.now().strftime("%d.%b.%Y %H:%M:%S")
 
-    # create tot input screen
-
+    # create todo input screen
     def createTodoScreen(e):
-        dateTime = dateTimeFunc().split(" ")[0]
+        dateTime = dateTimeFunc()
+
+        # opens connection to db and retun database object
+        db = DataBase.connectToDatabase()
+        # write to database the todo and date
+        DataBase.writeDatabase(db, (form.content.controls[0].value, dateTime))
+        # close connection to db
+        db.close()
 
         # use form variable to get data from tesxtfield
         if form.content.controls[0].value:  # checks textflied value
@@ -191,7 +199,7 @@ def main(page: Page):
                     # todo takes two arguments
                     form.content.controls[0].value,
                     dateTime,
-                    # now the intance take two arguments when called...
+                    # now the intance takes two arguments when called...
                     deleteTodoFuction,
                     updateTodoFunction,
                 )
@@ -200,8 +208,25 @@ def main(page: Page):
 
             # call show hide function
             createTodo(e)
+        else:
+            db.close()  # close connection to db even if no data is entered
+            pass
 
     def deleteTodoFuction(e):
+        
+        # delete from database
+        db = DataBase.connectToDatabase()
+        # delete value from instance itself
+        # passed it as a value in a tuple
+        DataBase.deleteDatabase(
+            db, (e.controls[0]
+                 .controls[0]
+                 .content.controls[0]
+                 .controls[0]
+                 .value
+                 ))
+        db.close()
+
         # when want to delete a todo, recall that these instances are in a list => so that means it can simply be removed from the list
         _main_column_.controls.remove(e)  # e is the instance itself
         _main_column_.update()
@@ -236,8 +261,8 @@ def main(page: Page):
             form.height, form.opacity, form.border_radius = 200, 1, 20
             form.update()
         else:
+            # clear textfield, change icon to add, change button function to createTodoScreen
             form.height, form.opacity, form.border_radius = 0, 0, 0
-
             form.content.controls[0].value = ""  # clear textfield,
             form.content.controls[2].icon = icons.ADD  # change icon to add,
             form.content.controls[2].on_click = lambda e: createTodoScreen(
@@ -302,6 +327,23 @@ def main(page: Page):
     # now it can be called from wherever in the code faster and easier
     # route is page.add.Container => Column.FormContainer => Container
     form = page.controls[0].content.controls[1].controls[0]
+
+    # display the db data open connection to db
+    db = DataBase.connectToDatabase()
+    # get data from db and show in reverse order
+    for todo in DataBase.readDatabase(db)[::-1]:
+        # append the data to the main column
+        _main_column_.controls.append(
+            # create an instance of CreateTodo class
+            CreateTodo(
+                todo[0],
+                todo[1],
+                deleteTodoFuction,
+                updateTodoFunction,
+            )
+        )
+
+        _main_column_.update()
 
 
 if __name__ == "__main__":
