@@ -3,11 +3,40 @@ from flet import *
 from datetime import datetime
 import sqlite3
 
-# Database class
+# Database CRUD class
 
 
 class DataBase:
-    pass
+    def connectToDatabase():
+        try:
+            db = sqlite3.connect("data.db")
+            cur = db.cursor()
+            cur.execute("CREATE TABLE if not exists todos (id INTERGER PRIMARY KEY AUTOINCREMENT, Todo TEXT NOT NULL, Date TEXT NOT NULL, )")
+            return db
+        except Exception as e:
+            print(e)
+
+    def readDatabase(db):
+        cur = db.cursor()
+        cur.execute("SELECT Todo, Date From todos")
+        records = cur.fetchall()
+        return records
+
+    def writeDatabase(db, values):
+        cur = db.cursor()
+        cur.execute("INSERT INTO todos (Todo, Date) VALUES (?,?)", values)
+        db.commit()
+
+    def deletDataBase(db, value):
+        cur = db.cursor()
+        cur.delete("DELETE FROM todos WHERE Todo=?)", value) #TODO: id would be better as the todo text
+        db.commit()
+
+    def updateDatabase(db, value):
+        cur = db.cursor()
+        cur.update("UPDATE todos SET Todo=? WHERE Todo=?)", value)
+        db.commit()
+
 
 # Form class
 
@@ -56,6 +85,7 @@ class FormContainer(UserControl):
                 )]
             )
         )
+
 
 # create todo class
 
