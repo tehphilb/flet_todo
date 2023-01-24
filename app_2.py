@@ -1,4 +1,3 @@
-# https: // www.youtube.com/watch?v = qRqxAUC_4oA & t = 3500s
 from flet import *
 from datetime import datetime
 import sqlite3
@@ -19,7 +18,7 @@ class DataBase:
 
     def readDatabase(db):
         cur = db.cursor()
-        cur.execute("SELECT Todo, Date From todos")
+        cur.execute("SELECT id, Todo, Date From todos")
         records = cur.fetchall()
         return records
 
@@ -28,16 +27,26 @@ class DataBase:
         cur.execute("INSERT INTO todos (Todo, Date) VALUES (?,?)", values)
         db.commit()
 
-    def deleteDatabase(db, value):
+    def deleteDatabase(db, id):
         cur = db.cursor()
         # TODO: id would be better as the todo text
-        cur.execute("DELETE FROM todos WHERE Todo=?", value)
+        cur.execute("DELETE FROM todos WHERE id=?", (id,))
         db.commit()
 
-    def updateDatabase(db, value):
+    def updateDatabase(db, values):
         cur = db.cursor()
-        cur.update("UPDATE todos SET Todo=? WHERE Todo=?)", value)
+        #print(values)
+        cur.execute("UPDATE todos SET Todo=? WHERE id=?", values)
         db.commit()
+
+    def getTodoId(db, value):
+        cur = db.cursor()
+        cur.execute("SELECT id FROM todos WHERE Todo=?", (value,))
+        todo_id = cur.fetchone()
+        if todo_id:
+            return todo_id[0]
+        else:
+            return None
 
 
 # Form class
@@ -200,31 +209,27 @@ def main(page: Page):
                     form.content.controls[0].value,
                     dateTime,
                     # now the intance takes two arguments when called...
-                    deleteTodoFuction,
+                    deleteTodoFunction,
                     updateTodoFunction,
                 )
             )
             _main_column_.update()
 
             # call show hide function
-            createTodo(e)
+            createTodoForm(e)
         else:
             db.close()  # close connection to db even if no data is entered
             pass
 
-    def deleteTodoFuction(e):
-        
-        # delete from database
+    def deleteTodoFunction(e):
         db = DataBase.connectToDatabase()
-        # delete value from instance itself
-        # passed it as a value in a tuple
-        DataBase.deleteDatabase(
-            db, (e.controls[0]
-                 .controls[0]
-                 .content.controls[0]
-                 .controls[0]
-                 .value
-                 ))
+        # get todo value
+        value = e.controls[0].controls[0].content.controls[0].controls[0].value
+        # get todo id
+        todoId = DataBase.getTodoId(db, value)
+        # delete from database
+        DataBase.deleteDatabase(db, todoId)
+        # close connection to db
         db.close()
 
         # when want to delete a todo, recall that these instances are in a list => so that means it can simply be removed from the list
@@ -248,15 +253,28 @@ def main(page: Page):
         form.update()
 
     def finalizeUpdate(e):
+        db = DataBase.connectToDatabase()
+        # get todo value from the instance
+        value = e.controls[0].controls[0].content.controls[0].controls[0].value
+        # get new todo value from the form
+        new_value = form.content.controls[0].value
+        # get todo id
+        todoId = DataBase.getTodoId(db, value)
+        # # delete from database
+        DataBase.updateDatabase(db, (new_value, todoId))
+        # close connection to db
+        db.close()
+
+
         # update the todo
         e.controls[0].controls[0].content.controls[0].controls[0].value = form.content.controls[0].value
         e.controls[0].controls[0].content.update()
         # show hide form
-        createTodo(e)
+        createTodoForm(e)
 
     # funtion to show/hide form container
 
-    def createTodo(e):
+    def createTodoForm(e):
         if form.height != 200:
             form.height, form.opacity, form.border_radius = 200, 1, 20
             form.update()
@@ -292,7 +310,7 @@ def main(page: Page):
                     Text("TODO", size=24),
                     IconButton(icon=icons.ADD,
                                icon_color="#f0f0f0",
-                               on_click=createTodo,)
+                               on_click=createTodoForm,)
                 ],
             ),),
         ],
@@ -336,9 +354,9 @@ def main(page: Page):
         _main_column_.controls.append(
             # create an instance of CreateTodo class
             CreateTodo(
-                todo[0],
                 todo[1],
-                deleteTodoFuction,
+                todo[2],
+                deleteTodoFunction,
                 updateTodoFunction,
             )
         )
